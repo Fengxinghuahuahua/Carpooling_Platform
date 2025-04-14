@@ -1,9 +1,11 @@
 from flask import Flask
 from flask_login import LoginManager
 from models import db, User
+from flask_cors import CORS
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://username:password@localhost/carpool_db'
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost:3306/carpool_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 
