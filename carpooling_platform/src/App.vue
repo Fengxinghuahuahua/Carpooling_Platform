@@ -1,16 +1,20 @@
 <template>
   <div>
-    <UserAuth />
+    <ProfilePage />
+    <!-- <UserAuth /> -->
   </div>
 </template>
 
 <script>
-import UserAuth from './views/UserAuth.vue'
+// import UserAuth from './views/UserAuth.vue'
+import ProfilePage from './views/ProfilePage.vue'
+
 
 export default {
   name: 'App',
   components: {
-    UserAuth
+    // UserAuth,
+    ProfilePage
   }
 }
 </script>
@@ -26,5 +30,13 @@ body {
   text-align: center;
   color: #2c3e50;
   margin-top: 0px;
+  box-sizing: border-box;
+  user-select: none;
+}
+*, *::after, *::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
 }
 </style>

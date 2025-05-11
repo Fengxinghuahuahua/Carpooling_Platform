@@ -1,221 +1,429 @@
 <template>
-  <div class="auth-container">
-    <div class="mid-container">
-      <el-card class="auth-card" shadow="hover" :body-style="{ padding: '20px' }">
-        <div class="toggle-tabs">
-          <el-radio-group v-model="activeTab" size="large">
-            <el-radio-button label="login">登录</el-radio-button>
-            <el-radio-button label="register">注册</el-radio-button>
-          </el-radio-group>
+  <div class="body">
+    <div class="main-box">
+      <!-- 注册表单 -->
+      <div :class="['container', 'container-register', { 'is-txl': isLogin }]">
+        <form>
+          <h2 class="title">注册</h2>
+          <div class="form__icons">
+            <img class="form__icon" src="@/assets/images/wechat.png" alt="微信登录" />
+            <img class="form__icon" src="@/assets/images/alipay.png" alt="支付宝登录" />
+            <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录" />
+          </div>
+          <span class="text">或使用邮箱进行注册</span>
+          <div v-if="registerError" class="error-message">{{ registerError }}</div>
+          <input class="form__input" type="text" placeholder="请输入用户名" v-model="registerForm.name" />
+          <input class="form__input" type="text" placeholder="请输入邮箱" v-model="registerForm.email" />
+          <input class="form__input" type="text" placeholder="请输入手机号" v-model="registerForm.phone" />
+          <input class="form__input" type="password" placeholder="请输入密码" v-model="registerForm.password" />
+          <input class="form__input" type="password" placeholder="请确认密码" v-model="registerForm.confirmPassword" />
+          <div class="form__button" @click="register">立即注册</div>
+        </form>
+      </div>
+
+      <!-- 登录表单 -->
+      <div :class="['container', 'container-login', { 'is-txl is-z200': isLogin }]">
+        <form>
+          <h2 class="title">登录</h2>
+          <div class="form__icons">
+            <img class="form__icon" src="@/assets/images/wechat.png" alt="微信登录" />
+            <img class="form__icon" src="@/assets/images/alipay.png" alt="支付宝登录" />
+            <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录" />
+          </div>
+          <span class="text">或使用用户名登录</span>
+          <div v-if="loginError" class="error-message">{{ loginError }}</div>
+          <input class="form__input" type="text" placeholder="用户名/手机号/邮箱" v-model="loginForm.identifier" />
+          <input class="form__input" type="password" placeholder="请输入密码" v-model="loginForm.password" />
+          <div class="form__button" @click="login">立即登录</div>
+        </form>
+      </div>
+
+      <!-- 切换按钮 -->
+      <div :class="['switch', { 'login': isLogin }]">
+        <div class="switch__circle"></div>
+        <div class="switch__circle switch__circle_top"></div>
+        <div class="switch__container">
+          <h2>{{ isLogin ? '您好 !' : '欢迎回来 !' }}</h2>
+          <p>
+            {{
+              isLogin
+                ? '如果您还没有账号，请点击下方立即注册按钮进行账号注册'
+                : '如果您已经注册过账号，请点击下方立即登录按钮进行登录'
+            }}
+          </p>
+          <div class="form__button" @click="toggleLogin">
+            {{ isLogin ? '立即注册' : '立即登录' }}
+          </div>
         </div>
-
-        <!-- 登录表单 -->
-        <el-form
-          v-if="activeTab === 'login'"
-          :model="loginForm"
-          :rules="loginRules"
-          ref="loginFormRef"
-          label-width="80px"
-        >
-          <el-form-item label="手机号" prop="phone">
-            <el-input v-model="loginForm.phone" placeholder="请输入手机号" />
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input type="password" v-model="loginForm.password" placeholder="请输入密码" />
-          </el-form-item>
-          <el-button type="primary" @click="handleLogin">登录</el-button>
-        </el-form>
-
-        <!-- 注册表单 -->
-        <el-form
-          v-else
-          :model="registerForm"
-          :rules="registerRules"
-          ref="registerFormRef"
-          label-width="80px"
-        >
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="registerForm.username" placeholder="请输入用户名" />
-          </el-form-item>
-          <el-form-item label="手机号" prop="phone">
-            <el-input v-model="registerForm.phone" placeholder="请输入手机号" />
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="registerForm.email" placeholder="请输入邮箱" />
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input type="password" v-model="registerForm.password" placeholder="请输入密码" />
-          </el-form-item>
-          <el-form-item label="确认密码" prop="confirmPassword">
-            <el-input type="password" v-model="registerForm.confirmPassword" placeholder="请再次输入密码" />
-          </el-form-item>
-          <el-button type="primary" @click="handleRegister">注册</el-button>
-        </el-form>
-      </el-card>
+      </div>
     </div>
-    <!-- 底部声明 -->
-    <footer class="footer">
-      © 2025 Carpooling Platform. All rights reserved.
-    </footer>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref } from 'vue';
+import axios from 'axios';
+import { ElMessage } from 'element-plus';
 
 export default {
   name: 'UserAuth',
   setup() {
-    const activeTab = ref('login')
+    // 状态
+    const isLogin = ref(true);
 
     // 登录表单
     const loginForm = ref({
-      phone: '',
-      password: ''
-    })
-    const loginFormRef = ref(null)
-    const loginRules = {
-      phone: [
-        { required: true, message: '手机号不能为空', trigger: 'blur' },
-        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
-      ],
-      password: [
-        { required: true, message: '密码不能为空', trigger: 'blur' },
-        { pattern: /^[a-zA-Z0-9_]{6,20}$/, message: '密码格式不正确（6-20位字母、数字或下划线）', trigger: 'blur' }
-      ]
-    }
+      identifier: '', // 用户名/手机号/邮箱
+      password: '',
+    });
+
+    const loginError = ref('');
 
     // 注册表单
     const registerForm = ref({
-      username: '',
-      phone: '',
+      name: '',
       email: '',
+      phone: '',
       password: '',
-      confirmPassword: ''
-    })
-    const registerFormRef = ref(null)
-    const registerRules = {
-      username: [
-        { required: true, message: '用户名不能为空', trigger: 'blur' },
-        { min: 2, max: 20, message: '用户名长度应在2-20个字符之间', trigger: 'blur' }
-      ],
-      phone: [
-        { required: true, message: '手机号不能为空', trigger: 'blur' },
-        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
-      ],
-      email: [
-        { required: true, message: '邮箱不能为空', trigger: 'blur' },
-        { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
-      ],
-      password: [
-        { required: true, message: '密码不能为空', trigger: 'blur' },
-        { pattern: /^[a-zA-Z0-9_]{6,20}$/, message: '密码格式不正确（6-20位字母、数字或下划线）', trigger: 'blur' }
-      ],
-      confirmPassword: [
-        { required: true, message: '确认密码不能为空', trigger: 'blur' },
-        {
-          validator(rule, value, callback) {
-            if (value !== registerForm.value.password) {
-              callback(new Error('两次输入的密码不一致'))
-            } else {
-              callback()
-            }
-          },
-          trigger: 'blur'
-        }
-      ]
-    }
+      confirmPassword: '',
+    });
 
-    const handleLogin = () => {
-      loginFormRef.value.validate((valid) => {
-        if (valid) {
-          ElMessage.success('登录成功！')
-          // TODO: 发送登录请求
-        }
-      })
-    }
+    const registerError = ref('');
 
-    const handleRegister = () => {
-      registerFormRef.value.validate((valid) => {
-        if (valid) {
-          ElMessage.success('注册成功！')
-          // TODO: 发送注册请求
-        }
-      })
-    }
+    // 切换登录/注册
+    const toggleLogin = () => {
+      isLogin.value = !isLogin.value;
+      loginError.value = '';
+      registerError.value = '';
+    };
+
+    // 登录方法
+    const login = async () => {
+      const { identifier, password } = loginForm.value;
+
+      // 校验登录表单
+      if (!identifier) {
+        loginError.value = '请输入用户名/手机号/邮箱';
+        return;
+      }
+      if (!password) {
+        loginError.value = '请输入密码';
+        return;
+      }
+
+      try {
+        const response = await axios.post('/api/auth/login', { identifier, password });
+        ElMessage.success('登录成功！');
+        console.log('登录成功:', response.data);
+        loginError.value = ''; // 清空错误信息
+      } catch (error) {
+        loginError.value = error.response?.data?.error || '登录失败，请稍后重试';
+      }
+    };
+
+    // 注册方法
+    const register = async () => {
+      const { name, email, phone, password, confirmPassword } = registerForm.value;
+
+      // 校验用户名
+      if (!name || name.length < 2 || name.length > 20 || /\s/.test(name)) {
+        registerError.value = '用户名必须为2-20个字符，且不能包含空格';
+        return;
+      }
+
+      // 校验邮箱
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        registerError.value = '请输入有效的邮箱地址';
+        return;
+      }
+
+      // 校验手机号
+      if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+        registerError.value = '请输入有效的手机号';
+        return;
+      }
+
+      // 校验密码
+      if (!password || !/^[a-zA-Z0-9_]{6,20}$/.test(password)) {
+        registerError.value = '密码必须为6-20个字符，由字母、数字或下划线组成';
+        return;
+      }
+
+      // 校验确认密码
+      if (password !== confirmPassword) {
+        registerError.value = '两次输入的密码不一致';
+        return;
+      }
+
+      try {
+        const response = await axios.post('/api/auth/register', { name, email, phone, password });
+        ElMessage.success('注册成功！');
+        console.log('注册成功:', response.data);
+        registerError.value = ''; // 清空错误信息
+        toggleLogin(); // 注册成功后切换到登录页面
+      } catch (error) {
+        registerError.value = error.response?.data?.error || '注册失败，请稍后重试';
+      }
+    };
 
     return {
-      activeTab,
+      isLogin,
       loginForm,
-      loginFormRef,
-      loginRules,
+      loginError,
       registerForm,
-      registerFormRef,
-      registerRules,
-      handleLogin,
-      handleRegister
+      registerError,
+      toggleLogin,
+      login,
+      register,
+    };
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+.body {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  background-image: url("@/assets/images/background.jpg");
+  color: #a0a5a8;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.main-box {
+  position: relative;
+  width: 1000px;
+  min-width: 1000px;
+  min-height: 600px;
+  height: 600px;
+  padding: 25px;
+  background-color: #ecf0f3;
+  box-shadow: 1px 1px 100px 10px #ecf0f3;
+  border-radius: 12px;
+  overflow: hidden;
+
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    width: 600px;
+    height: 100%;
+    padding: 25px;
+    background-color: #ecf0f3;
+    transition: all 1.25s;
+
+    form {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      color: #a0a5a8;
+
+      .form__icon {
+        object-fit: contain;
+        width: 30px;
+        margin: 0 5px;
+        opacity: 0.5;
+        transition: 0.15s;
+
+        &:hover {
+          opacity: 1;
+          transition: 0.15s;
+          cursor: pointer;
+        }
+      }
+
+      .title {
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 3;
+        color: #181818;
+      }
+
+      .text {
+        margin-top: 30px;
+        margin-bottom: 12px;
+      }
+
+      .form__input {
+        width: 350px;
+        height: 40px;
+        margin: 4px 0;
+        padding-left: 25px;
+        font-size: 13px;
+        letter-spacing: 0.15px;
+        border: none;
+        outline: none;
+        background-color: #ecf0f3;
+        transition: 0.25s ease;
+        border-radius: 8px;
+        box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #f9f9f9;
+
+        &::placeholder {
+          color: #a0a5a8;
+        }
+      }
+    }
+  }
+
+  .container-register {
+    z-index: 100;
+    left: calc(100% - 600px);
+  }
+
+  .container-login {
+    left: calc(100% - 600px);
+    z-index: 0;
+  }
+
+  .is-txl {
+    left: 0;
+    transition: 1.25s;
+    transform-origin: right;
+  }
+
+  .is-z200 {
+    z-index: 200;
+    transition: 1.25s;
+  }
+
+  .switch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 400px;
+    padding: 50px;
+    z-index: 200;
+    transition: 1.25s;
+    background-color: #ecf0f3;
+    overflow: hidden;
+    box-shadow: 4px 4px 10px #d1d9e6, -4px -4px 10px #f9f9f9;
+    color: #a0a5a8;
+
+    .switch__circle {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background-color: #ecf0f3;
+      box-shadow: inset 8px 8px 12px #d1d9e6, inset -8px -8px 12px #f9f9f9;
+      bottom: -60%;
+      left: -60%;
+      transition: 1.25s;
+    }
+
+    .switch__circle_top {
+      top: -30%;
+      left: 60%;
+      width: 300px;
+      height: 300px;
+    }
+
+    .switch__container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: absolute;
+      width: 400px;
+      padding: 50px 55px;
+      transition: 1.25s;
+
+      h2 {
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 3;
+        color: #181818;
+      }
+
+      p {
+        font-size: 14px;
+        letter-spacing: 0.25px;
+        text-align: center;
+        line-height: 1.6;
+      }
+    }
+  }
+
+  .login {
+    left: calc(100% - 400px);
+
+    .switch__circle {
+      left: 0;
+    }
+  }
+
+  .form__button {
+    width: 180px;
+    height: 50px;
+    border-radius: 25px;
+    margin-top: 50px;
+    text-align: center;
+    line-height: 50px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    background-color: #4b70e2;
+    color: #f9f9f9;
+    cursor: pointer;
+    box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #f9f9f9;
+
+    &:hover {
+      box-shadow: 2px 2px 3px 0 rgba(255, 255, 255, 50%),
+        -2px -2px 3px 0 rgba(116, 125, 136, 50%),
+        inset -2px -2px 3px 0 rgba(255, 255, 255, 20%),
+        inset 2px 2px 3px 0 rgba(0, 0, 0, 30%);
     }
   }
 }
-</script>
 
-<style scoped>
-.auth-container {
-  display: flex;
-  flex-direction: column; /* 使内容和底部声明垂直排列 */
-  justify-content: flex-start;
-  align-items: flex-start; /* 将内容对齐到左侧 */
-  height: 100vh;
-  background: url('../assets/背景.png') no-repeat center center; /* 添加背景图片 */
-  background-size: cover; /* 使背景图片覆盖整个页面 */
-  background-attachment: fixed; /* 固定背景图片，防止滚动 */
-  background-position: left; /* 确保图片居中显示 */
-}
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-box {
+    width: 100%;
+    min-width: unset;
+    height: auto;
+    padding: 15px;
+  }
 
-.mid-container {
-  display: flex;
-  margin-top: 260px; /* 留出顶部空间，避免与Logo重叠 */
-  margin-left: 150px; /* 添加左侧内边距，与Logo左侧对其 */
-}
+  .container {
+    width: 100%;
+    position: relative;
+    padding: 10px;
 
-.auth-card {
-  margin-top: auto; /* 将 footer 推到页面底部 */
-  width: 400px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  background-color: rgba(228, 236, 247, 0.9); /* 设置背景颜色并调整透明度 */
-  border-radius: 12px;
-  position: relative; /* 确保不受全局样式影响 */
-}
+    form {
+      .form__input {
+        width: 100%;
+      }
+    }
+  }
 
-.footer {
-  align-self: center; /* 将 footer 居中对齐 */
-  margin-top: auto; /* 将 footer 推到页面底部 */
-  text-align: center;
-  padding: 10px 0;
-  font-size: 14px;
-  color: #666;
-  background-color: transparent; /* 保持背景透明 */
-  width: 100%;
-}
+  .switch {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 20px;
 
-.toggle-tabs {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.el-form-item {
-  margin-bottom: 22px;
-}
-
-.el-form-item:last-child {
-  display: flex;
-  justify-content: center;
-}
-
-.el-input {
-  width: 100%;
+    .switch__container {
+      width: 100%;
+      padding: 20px;
+    }
+  }
 }
 </style>
