@@ -134,10 +134,18 @@
               title="消息详情"
               v-model="dialogVisible"
               width="500px"
+              header-class="message-dialog"
             >
-              <p><strong>标题：</strong>{{ currentMessage.title }}</p>
-              <p><strong>时间：</strong>{{ currentMessage.time }}</p>
-              <p><strong>内容：</strong>{{ currentMessage.content || '暂无内容' }}</p>
+            <template #header="{ titleId, titleClass }">
+              <div class="my-header">
+                <h4 :id="titleId" :class="titleClass">消息详情</h4>
+              </div>
+            </template>
+              <div class="message-content">
+                <p><strong>标题：</strong>{{ currentMessage.title }}</p>
+                <p><strong>时间：</strong>{{ currentMessage.time }}</p>
+                <p><strong>内容：</strong>{{ currentMessage.content || '暂无内容' }}</p>
+              </div>
               <template #footer>
                 <el-button @click="dialogVisible = false">关闭</el-button>
               </template>
@@ -157,10 +165,18 @@
               title="消息详情"
               v-model="dialogVisible"
               width="500px"
+              header-class="message-dialog"
             >
-              <p><strong>标题：</strong>{{ currentMessage.title }}</p>
-              <p><strong>时间：</strong>{{ currentMessage.time }}</p>
-              <p><strong>内容：</strong>{{ currentMessage.content || '暂无内容' }}</p>
+            <template #header="{ titleId, titleClass }">
+              <div class="my-header">
+                <h4 :id="titleId" :class="titleClass">消息详情</h4>
+              </div>
+            </template>
+              <div class="message-content">
+                <p><strong>标题：</strong>{{ currentMessage.title }}</p>
+                <p><strong>时间：</strong>{{ currentMessage.time }}</p>
+                <p><strong>内容：</strong>{{ currentMessage.content || '暂无内容' }}</p>
+              </div>
               <template #footer>
                 <el-button @click="dialogVisible = false">关闭</el-button>
               </template>
@@ -408,6 +424,20 @@ export default {
   max-width: 1200px;
   margin: 20px auto;
   padding: 0 20px;
+}
+
+.message-content {
+  text-align: left; /* 设置内容左对齐 */
+  line-height: 1.8; /* 增加行高，提升可读性 */
+  font-size: 14px; /* 设置字体大小 */
+  color: #333; /* 设置字体颜色 */
+}
+
+.my-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .profile-header {

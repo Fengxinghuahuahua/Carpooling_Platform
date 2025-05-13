@@ -2,8 +2,9 @@ import Mock from 'mockjs';
 
 // 拦截 '/api/auth/login' 请求并返回随机数据
 Mock.mock('/api/auth/login', 'post', (options) => {
+  
   const { identifier, password } = JSON.parse(options.body);
-  console.log('Mock login request:', identifier, password);
+  
   // 模拟登录逻辑
   if (identifier === 'testuser' && password === '123456') {
     return {
@@ -23,6 +24,33 @@ Mock.mock('/api/auth/login', 'post', (options) => {
     return {
       code: 401,
       message: '用户名或密码错误',
+    };
+  }
+});
+
+// 拦截 '/api/auth/register' 请求并返回随机数据
+Mock.mock('/api/auth/register', 'post', (options) => {
+  const { name, email, phone, password } = JSON.parse(options.body);
+
+  // 模拟注册逻辑
+  if (name && email && phone && password) {
+    return {
+      code: 200,
+      message: '注册成功',
+      data: {
+        user: {
+          id: Mock.Random.id(),
+          name,
+          email,
+          phone,
+          avatar: Mock.Random.image('100x100', '#2196F3', '#FFF', 'Avatar'),
+        },
+      },
+    };
+  } else {
+    return {
+      code: 400,
+      message: '注册失败，请检查输入信息',
     };
   }
 });

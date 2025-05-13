@@ -116,14 +116,18 @@ export default {
 
       try {
         const response = await axios.post('/api/auth/login', { identifier, password });
-        ElMessage.success('登录成功！');
+        if (response.status !== 200) {
+          console.error('登录失败:', response);
+          loginError.value = '登录失败';
+          throw new Error('登录失败');
+        }
         console.log('登录成功:', response.data);
         loginError.value = ''; // 清空错误信息
 
         // TODO：此处只是模拟登录成功，后续连接到后端后此处需要进行修改
         localStorage.setItem('token', response.data.token); // 假设后端返回了一个 token
         
-        router.push({ name: 'ProfilePage' }); // 登录成功后跳转到个人主页
+        router.push('/personal'); // 登录成功后跳转到个人主页
       } catch (error) {
         loginError.value = error.response?.data?.error || '登录失败，请稍后重试';
       }
