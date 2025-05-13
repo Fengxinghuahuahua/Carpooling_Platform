@@ -64,12 +64,15 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router'; // 引入 Vue Router
 
 export default {
   name: 'UserAuth',
   setup() {
     // 状态
     const isLogin = ref(true);
+
+    const router = useRouter(); // 使用 Vue Router
 
     // 登录表单
     const loginForm = ref({
@@ -116,6 +119,11 @@ export default {
         ElMessage.success('登录成功！');
         console.log('登录成功:', response.data);
         loginError.value = ''; // 清空错误信息
+
+        // TODO：此处只是模拟登录成功，后续连接到后端后此处需要进行修改
+        localStorage.setItem('token', response.data.token); // 假设后端返回了一个 token
+        
+        router.push({ name: 'ProfilePage' }); // 登录成功后跳转到个人主页
       } catch (error) {
         loginError.value = error.response?.data?.error || '登录失败，请稍后重试';
       }

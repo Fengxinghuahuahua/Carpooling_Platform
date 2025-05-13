@@ -1,20 +1,18 @@
 <template>
   <div>
-    <ProfilePage />
-    <!-- <UserAuth /> -->
+    <RouterView />
   </div>
 </template>
 
 <script>
 // import UserAuth from './views/UserAuth.vue'
-import ProfilePage from './views/ProfilePage.vue'
-
+// import ProfilePage from './components/ProfileContent.vue'
 
 export default {
   name: 'App',
   components: {
     // UserAuth,
-    ProfilePage
+    // ProfilePage
   }
 }
 </script>

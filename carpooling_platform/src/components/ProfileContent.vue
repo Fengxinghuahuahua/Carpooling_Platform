@@ -129,6 +129,19 @@
                 </template>
               </el-table-column>
             </el-table>
+
+            <el-dialog
+              title="消息详情"
+              v-model="dialogVisible"
+              width="500px"
+            >
+              <p><strong>标题：</strong>{{ currentMessage.title }}</p>
+              <p><strong>时间：</strong>{{ currentMessage.time }}</p>
+              <p><strong>内容：</strong>{{ currentMessage.content || '暂无内容' }}</p>
+              <template #footer>
+                <el-button @click="dialogVisible = false">关闭</el-button>
+              </template>
+            </el-dialog>
           </el-tab-pane>
           <el-tab-pane label="已读消息">
             <el-table :data="readMessagesList" style="width: 100%" :column-width="180">
@@ -140,6 +153,18 @@
                 </template>
               </el-table-column>
             </el-table>
+            <el-dialog
+              title="消息详情"
+              v-model="dialogVisible"
+              width="500px"
+            >
+              <p><strong>标题：</strong>{{ currentMessage.title }}</p>
+              <p><strong>时间：</strong>{{ currentMessage.time }}</p>
+              <p><strong>内容：</strong>{{ currentMessage.content || '暂无内容' }}</p>
+              <template #footer>
+                <el-button @click="dialogVisible = false">关闭</el-button>
+              </template>
+            </el-dialog>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -154,10 +179,11 @@
 
 <script>
 import { ref, reactive } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox} from 'element-plus'
 import { useRouter } from 'vue-router'
 
 export default {
+  name: 'ProfileContent',
   setup() {
     const router = useRouter()
     
@@ -190,15 +216,19 @@ export default {
       { id: 987, route: '天通苑 → 国贸', time: '2023-06-08 07:30', driver: '李女士', status: '已完成' }
     ])
 
+    const dialogVisible = ref(false); // 控制弹窗显示
+    const currentMessage = ref({}); // 当前选中的消息内容
+
     // 消息相关
     const unreadMessages = ref(2)
     const unreadMessagesList = ref([
-      { id: 1, title: '您的拼车申请已通过', time: '2023-06-14 10:30' },
-      { id: 2, title: '系统通知: 新功能上线', time: '2023-06-13 15:45' }
-    ])
+      { id: 1, title: '您的拼车申请已通过', time: '2023-06-14 10:30', content: '您的拼车申请已通过，请尽快联系车主确认详情。' },
+      { id: 2, title: '系统通知: 新功能上线', time: '2023-06-13 15:45', content: '我们上线了新的拼车功能，快来体验吧！' },
+    ]);
+
     const readMessagesList = ref([
-      { id: 3, title: '欢迎使用拼车平台', time: '2023-06-01 09:00' }
-    ])
+      { id: 3, title: '欢迎使用拼车平台', time: '2023-06-01 09:00', content: '感谢您注册拼车平台，祝您使用愉快！' },
+    ]);
 
     // 获取状态对应的标签类型
     const getStatusType = (status) => {
@@ -303,19 +333,34 @@ export default {
 
     // 阅读消息
     const readMessage = (id) => {
-      const index = unreadMessagesList.value.findIndex(item => item.id === id)
+      const index = unreadMessagesList.value.findIndex((item) => item.id === id);
       if (index !== -1) {
-        const msg = unreadMessagesList.value.splice(index, 1)[0]
-        readMessagesList.value.unshift(msg)
-        unreadMessages.value--
-        ElMessage.success('消息已标记为已读')
+        const msg = unreadMessagesList.value.splice(index, 1)[0];
+        readMessagesList.value.unshift(msg);
+        unreadMessages.value--;
+        currentMessage.value = msg; // 设置当前消息内容
+        dialogVisible.value = true; // 显示弹窗
+        ElMessage.success('消息已标记为已读');
+        console.log('阅读消息:', msg);
+        console.log('dialogVisible:', dialogVisible.value);
+      } else {
+        ElMessage.error('未找到该消息');
       }
-    }
+    };
 
-    // 查看消息
     const viewMessage = (id) => {
-      ElMessage.info(`查看消息ID: ${id}`)
-    }
+      const message = [...unreadMessagesList.value, ...readMessagesList.value].find(
+        (item) => item.id === id
+      );
+      if (message) {
+        currentMessage.value = message; // 设置当前消息内容
+        dialogVisible.value = true; // 显示弹窗
+        console.log('查看消息:', message);
+        console.log('dialogVisible:', dialogVisible.value);
+      } else {
+        ElMessage.error('未找到该消息');
+      }
+    };
 
     // 退出登录
     const logout = () => {
@@ -350,7 +395,9 @@ export default {
       readMessage,
       viewMessage,
       logout,
-      tempUserInfo
+      tempUserInfo,
+      dialogVisible,
+      currentMessage
     }
   }
 }
@@ -449,5 +496,10 @@ export default {
   width: 100%;
   background: #fff;
   padding: 20px;
+}
+
+/* 消息中心 */
+.el-dialog {
+  z-index: 9999 !important;
 }
 </style>
