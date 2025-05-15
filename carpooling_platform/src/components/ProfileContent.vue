@@ -46,19 +46,19 @@
         <h2 class="section-title">我发起的拼车</h2>
         <el-table :data="initiatedCarpools" style="width: 100%">
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="route" label="路线" />
+          <el-table-column prop="origin" label="起点" />
+          <el-table-column prop="terminal" label="终点" />
           <el-table-column prop="time" label="出发时间" width="180" />
           <el-table-column prop="seats" label="座位数" width="100" />
           <el-table-column prop="status" label="状态" width="120">
-            <template #default="{row}">
+            <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180">
-            <template #default="{row}">
+            <template #default="{ row }">
               <el-button size="small" @click="viewCarpool(row.id)">查看</el-button>
-              <el-button size="small" type="danger" @click="cancelCarpool(row.id)" 
-                         v-if="row.status === '进行中'">取消</el-button>
+              <el-button size="small" type="danger" @click="cancelCarpool(row.id)" v-if="row.status === '进行中'">取消</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -69,19 +69,19 @@
         <h2 class="section-title">我加入的拼车</h2>
         <el-table :data="joinedCarpools" style="width: 100%">
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="route" label="路线" />
+          <el-table-column prop="origin" label="起点" />
+          <el-table-column prop="terminal" label="终点" />
           <el-table-column prop="time" label="出发时间" width="180" />
           <el-table-column prop="driver" label="车主" width="120" />
           <el-table-column prop="status" label="状态" width="120">
-            <template #default="{row}">
+            <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180">
-            <template #default="{row}">
+            <template #default="{ row }">
               <el-button size="small" @click="viewCarpool(row.id)">查看</el-button>
-              <el-button size="small" type="danger" @click="quitCarpool(row.id)" 
-                         v-if="row.status === '进行中'">退出</el-button>
+              <el-button size="small" type="danger" @click="quitCarpool(row.id)" v-if="row.status === '进行中'">退出</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -221,16 +221,16 @@ export default {
 
     // 我发起的拼车列表
     const initiatedCarpools = ref([
-      { id: 1001, route: '北京西站 → 中关村', time: '2023-06-15 08:30', seats: 3, status: '进行中' },
-      { id: 952, route: '朝阳公园 → 首都机场', time: '2023-06-10 14:00', seats: 2, status: '已完成' },
-      { id: 876, route: '国贸 → 望京', time: '2023-06-05 18:00', seats: 4, status: '已取消' }
-    ])
+      { id: 1001, origin: '北京西站', terminal: '中关村', time: '2023-06-15 08:30', seats: 3, status: '进行中' },
+      { id: 952, origin: '朝阳公园', terminal: '首都机场', time: '2023-06-10 14:00', seats: 2, status: '已完成' },
+      { id: 876, origin: '国贸', terminal: '望京', time: '2023-06-05 18:00', seats: 4, status: '已取消' },
+    ]);
 
     // 我加入的拼车列表
     const joinedCarpools = ref([
-      { id: 1005, route: '五道口 → 西直门', time: '2023-06-16 09:00', driver: '张师傅', status: '进行中' },
-      { id: 987, route: '天通苑 → 国贸', time: '2023-06-08 07:30', driver: '李女士', status: '已完成' }
-    ])
+      { id: 1005, origin: '五道口', terminal: '西直门', time: '2023-06-16 09:00', driver: '张师傅', status: '进行中' },
+      { id: 987, origin: '天通苑', terminal: '国贸', time: '2023-06-08 07:30', driver: '李女士', status: '已完成' },
+    ]);
 
     const dialogVisible = ref(false); // 控制弹窗显示
     const currentMessage = ref({}); // 当前选中的消息内容
