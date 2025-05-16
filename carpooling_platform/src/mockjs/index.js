@@ -55,19 +55,42 @@ Mock.mock('/api/auth/register', 'post', (options) => {
   }
 });
 
+const userInfo = {
+    username: '拼车达人',
+    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+    phone: '13800138000',
+    email: 'user@example.com',
+    registerTime: '2023-01-15',
+    creditScore: 4.7
+}
+
 Mock.mock('/api/user/profile', 'get', () => {
     // 模拟获取用户信息
     return {
       code: 200,
       message: '获取用户信息成功',
-      data: {
-        username: '拼车达人',
-        avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-        phone: '13800138000',
-        email: 'user@example.com',
-        registerTime: '2023-01-15',
-        creditScore: 4.7
-      }
+      data: userInfo
+    }
+})
+
+Mock.mock('/api/user/update', 'post', (option) => {
+    const { username, avatar, phone, email } = JSON.parse(option.body);
+    // 模拟更新用户信息
+    if (username && avatar && phone && email) {
+        userInfo.username = username;
+        userInfo.avatar = avatar;
+        userInfo.phone = phone;
+        userInfo.email = email;
+        return {
+            code: 200,
+            message: '更新用户信息成功',
+            data: userInfo
+        }
+    } else {
+        return {
+            code: 400,
+            message: '更新用户信息失败'
+        }
     }
 })
 

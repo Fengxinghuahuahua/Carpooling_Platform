@@ -30,6 +30,7 @@
 <script setup>
 import {ElMessage} from "element-plus";
 import {defineModel, reactive} from "vue";
+import axios from "axios";
 
 const userInfo = defineModel()
 
@@ -81,14 +82,20 @@ const updateProfile = () => {
     return;
   }
   // 如果校验通过，更新信息
-  setTimeout(() => {
-    // 假设保存成功后，更新原始数据
+  axios({
+    method: 'post',
+    url: '/api/user/update',
+    data: userInfoCopy
+  }).then(() => {
+    // 刷新原始数据
     userInfo.value.username = userInfoCopy.username
     userInfo.value.avatar = userInfoCopy.avatar
     userInfo.value.phone = userInfoCopy.phone
     userInfo.value.email = userInfoCopy.email
     ElMessage.success('个人信息已更新');
-  }, 500);
+  }).catch(() => {
+    ElMessage.error('更新失败，请稍后再试');
+  })
 }
 </script>
 
