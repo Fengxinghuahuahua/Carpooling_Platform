@@ -8,12 +8,14 @@
       <el-form-item label="头像">
         <el-upload
           class="avatar-uploader"
-          action="/api/upload"
+          action="/api/user/upload"
           :show-file-list="false"
           :on-success="handleAvatarSuccess"
-          :before-upload="beforeAvatarUpload">
+          :before-upload="beforeAvatarUpload"
+          :http-request="customUpload"
+        >
           <img v-if="userInfoCopy.avatar" :src="userInfoCopy.avatar" class="avatar" alt="头像">
-          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
       </el-form-item>
       <el-form-item label="手机号">
@@ -31,6 +33,7 @@
 import {ElMessage} from "element-plus";
 import {defineModel, reactive} from "vue";
 import axios from "axios";
+import {Plus} from "@element-plus/icons-vue";
 
 const userInfo = defineModel()
 
@@ -43,10 +46,10 @@ const userInfoCopy = reactive({
 })
 
 // 头像上传前验证
-const beforeAvatarUpload = (file) => {
-  const isJPG = file.type === 'image/jpeg'
-  const isPNG = file.type === 'image/png'
-  const isLt2M = file.size / 1024 / 1024 < 2
+const beforeAvatarUpload = (rawFile) => {
+  const isJPG = rawFile.type === 'image/jpeg'
+  const isPNG = rawFile.type === 'image/png'
+  const isLt2M = rawFile.size / 1024 / 1024 < 2
 
   if (!isJPG && !isPNG)
     ElMessage.error('头像图片只能是 JPG/PNG 格式!')
@@ -55,9 +58,22 @@ const beforeAvatarUpload = (file) => {
   return (isJPG || isPNG) && isLt2M
 }
 
+// 自定义上传函数
+const customUpload = (option) => {
+  const reader = new FileReader()
+  reader.readAsDataURL(option.file)
+  reader.onload = () => {
+    axios.post('/api/user/upload', {
+      data: reader.result
+    }).then((res) => {
+      option.onSuccess(res)
+    })
+  }
+}
+
 // 头像上传成功
 const handleAvatarSuccess = (res) => {
-  userInfoCopy.avatar = res.url
+  userInfoCopy.avatar = res.data.data
   ElMessage.success('头像上传成功')
 }
 
@@ -100,6 +116,14 @@ const updateProfile = () => {
 </script>
 
 <style scoped>
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
+
+<style>
 .person-title {
   color: #409EFF;
   margin-bottom: 0;
@@ -107,12 +131,24 @@ const updateProfile = () => {
   border-bottom: 1px solid #eee;
 }
 
-.avatar-uploader-icon {
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 120px;
-  height: 120px;
-  line-height: 120px;
+  width: 178px;
+  height: 178px;
   text-align: center;
 }
 

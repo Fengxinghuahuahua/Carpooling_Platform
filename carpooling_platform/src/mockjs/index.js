@@ -57,7 +57,7 @@ Mock.mock('/api/auth/register', 'post', (options) => {
 
 const userInfo = {
     username: '拼车达人',
-    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+    avatar: '',
     phone: '13800138000',
     email: 'user@example.com',
     registerTime: '2023-01-15',
@@ -70,6 +70,23 @@ Mock.mock('/api/user/profile', 'get', () => {
       code: 200,
       message: '获取用户信息成功',
       data: userInfo
+    }
+})
+
+Mock.mock("/api/user/upload", "post", (option) => {
+    const file = JSON.parse(option.body);
+    // 模拟文件上传
+    if (file) {
+        return {
+            code: 200,
+            message: '文件上传成功',
+            data: file.data
+        }
+    } else {
+        return {
+            code: 400,
+            message: '文件上传失败'
+        }
     }
 })
 
