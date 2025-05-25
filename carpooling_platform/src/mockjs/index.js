@@ -28,6 +28,36 @@ Mock.mock('/api/auth/login', 'post', (options) => {
   }
 });
 
+// 拦截 '/api/admin/login' 请求并返回随机数据
+Mock.mock('/api/admin/login', 'post', (options) => {
+  
+  const { identifier, password } = JSON.parse(options.body);
+  
+  // 模拟登录逻辑
+  if (identifier === 'testuser' && password === '123456') {
+    return {
+      code: 200,
+      message: '登录成功',
+      data: {
+        token: Mock.Random.guid(), // 随机生成一个 GUID 作为 token
+        user: {
+          id: Mock.Random.id(),
+          name: '测试用户',
+          email: 'testuser@example.com',
+          avatar: Mock.Random.image('100x100', '#4CAF50', '#FFF', 'Avatar'),
+        },
+      },
+    };
+  } else {
+    return {
+      code: 401,
+      message: '用户名或密码错误',
+    };
+  }
+});
+
+
+
 // 拦截 '/api/auth/register' 请求并返回随机数据
 Mock.mock('/api/auth/register', 'post', (options) => {
   const { name, email, phone, password } = JSON.parse(options.body);
@@ -182,5 +212,34 @@ Mock.mock('/api/user/initiated_carpools', 'get', () => {
       ]
     };
 })
+
+// 模拟获取用户列表
+Mock.mock('/api/users', 'get', () => {
+  // 生成10个假用户数据
+  const users = Mock.mock({
+    'users|10': [
+      {
+        'id|+1': 1000,
+        username: '@name',
+        phone: /^1[3456789]\d{9}$/,
+        email: '@email',
+      },
+    ],
+  });
+  return {
+    code: 200,
+    message: '获取用户列表成功',
+    data: users.users,
+  };
+});
+
+// 模拟删除用户接口
+Mock.mock(/\/api\/users\/\d+/, 'delete', () => {
+  // 这里可以解析 URL 获得 id，不过我们不做实际删除，直接返回成功
+  return {
+    code: 200,
+    message: '用户删除成功',
+  };
+});
 
 export default Mock;

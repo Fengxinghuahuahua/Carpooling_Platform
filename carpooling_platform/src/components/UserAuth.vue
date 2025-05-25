@@ -24,17 +24,22 @@
       <!-- 登录表单 -->
       <div :class="['container', 'container-login', { 'is-txl is-z200': isLogin }]">
         <form>
-          <h2 class="title">登录</h2>
+          <h2 class="title">{{ isAdmin ? '管理员登录' : '登录' }}</h2>
           <div class="form__icons">
             <img class="form__icon" src="@/assets/images/wechat.png" alt="微信登录" />
             <img class="form__icon" src="@/assets/images/alipay.png" alt="支付宝登录" />
             <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录" />
           </div>
-          <span class="text">或使用用户名登录</span>
+          <span class="text">
+            {{ isAdmin ? '使用管理员账号登录' : '或使用用户名登录' }}
+          </span>
           <div v-if="loginError" class="error-message">{{ loginError }}</div>
           <input class="form__input" type="text" placeholder="用户名/手机号/邮箱" v-model="loginForm.identifier" />
           <input class="form__input" type="password" placeholder="请输入密码" v-model="loginForm.password" />
           <div class="form__button" @click="login">立即登录</div>
+          <p style="margin-top: 10px; cursor: pointer;" @click="toggleAdmin">
+            {{ isAdmin ? '切换为用户登录' : '切换为管理员登录' }}
+          </p>
         </form>
       </div>
 
@@ -64,25 +69,23 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
-import { useRouter } from 'vue-router'; // 引入 Vue Router
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'UserAuth',
   setup() {
-    // 状态
     const isLogin = ref(true);
+    const isAdmin = ref(false); // 是否管理员登录
 
-    const router = useRouter(); // 使用 Vue Router
+    const router = useRouter();
 
-    // 登录表单
     const loginForm = ref({
-      identifier: '', // 用户名/手机号/邮箱
+      identifier: '',
       password: '',
     });
 
     const loginError = ref('');
 
-    // 注册表单
     const registerForm = ref({
       name: '',
       email: '',
@@ -93,18 +96,21 @@ export default {
 
     const registerError = ref('');
 
-    // 切换登录/注册
     const toggleLogin = () => {
       isLogin.value = !isLogin.value;
       loginError.value = '';
       registerError.value = '';
+      isAdmin.value = false; // 切换用户注册登录时默认是普通用户
     };
 
-    // 登录方法
+    const toggleAdmin = () => {
+      isAdmin.value = !isAdmin.value;
+      loginError.value = '';
+    };
+
     const login = async () => {
       const { identifier, password } = loginForm.value;
 
-      // 校验登录表单
       if (!identifier) {
         loginError.value = '请输入用户名/手机号/邮箱';
         return;
@@ -115,53 +121,51 @@ export default {
       }
 
       try {
-        const response = await axios.post('/api/auth/login', { identifier, password });
-        if (response.status !== 200) {
-          console.error('登录失败:', response);
-          loginError.value = '登录失败';
-          throw new Error('登录失败');
-        }
-        console.log('登录成功:', response.data);
-        loginError.value = ''; // 清空错误信息
+        const endpoint = isAdmin.value ? '/api/admin/login' : '/api/auth/login';
+        const response = await axios.post(endpoint, { identifier, password });
 
-        // TODO：此处只是模拟登录成功，后续连接到后端后此处需要进行修改
-        localStorage.setItem('token', response.data.token); // 假设后端返回了一个 token
+        if (response.status !== 200) {
+          loginError.value = '登录失败';
+          return;
+        }
+
+        localStorage.setItem('token', response.data.token);
+        loginError.value = '';
+
         
-        router.push('/personal'); // 登录成功后跳转到个人主页
+        if (isAdmin.value) {
+          router.push('/admin');
+        } else {
+          router.push('/personal');
+        }
       } catch (error) {
         loginError.value = error.response?.data?.error || '登录失败，请稍后重试';
       }
     };
 
-    // 注册方法
     const register = async () => {
       const { name, email, phone, password, confirmPassword } = registerForm.value;
 
-      // 校验用户名
       if (!name || name.length < 2 || name.length > 20 || /\s/.test(name)) {
         registerError.value = '用户名必须为2-20个字符，且不能包含空格';
         return;
       }
 
-      // 校验邮箱
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         registerError.value = '请输入有效的邮箱地址';
         return;
       }
 
-      // 校验手机号
       if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
         registerError.value = '请输入有效的手机号';
         return;
       }
 
-      // 校验密码
       if (!password || !/^[a-zA-Z0-9_]{6,20}$/.test(password)) {
         registerError.value = '密码必须为6-20个字符，由字母、数字或下划线组成';
         return;
       }
 
-      // 校验确认密码
       if (password !== confirmPassword) {
         registerError.value = '两次输入的密码不一致';
         return;
@@ -171,8 +175,8 @@ export default {
         const response = await axios.post('/api/auth/register', { name, email, phone, password });
         ElMessage.success('注册成功！');
         console.log('注册成功:', response.data);
-        registerError.value = ''; // 清空错误信息
-        toggleLogin(); // 注册成功后切换到登录页面
+        registerError.value = '';
+        toggleLogin(); // 注册成功后切换到登录
       } catch (error) {
         registerError.value = error.response?.data?.error || '注册失败，请稍后重试';
       }
@@ -180,11 +184,13 @@ export default {
 
     return {
       isLogin,
+      isAdmin,
       loginForm,
       loginError,
       registerForm,
       registerError,
       toggleLogin,
+      toggleAdmin,
       login,
       register,
     };
