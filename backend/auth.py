@@ -11,6 +11,7 @@ def register():
     username = data.get('username')
     password = data.get('password')
     phone = data.get('phone')
+    email = data.get('email')
     
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already exists'}), 400
@@ -18,7 +19,10 @@ def register():
     if User.query.filter_by(phone=phone).first():
         return jsonify({'error': 'Phone number already registered'}), 400
     
-    user = User(username=username, phone=phone)
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already registered'}), 400
+    
+    user = User(username=username, phone=phone, email=email)
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
