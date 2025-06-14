@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import service from "@/api/axios.js";
 import TripCard from '@/components/TripCard.vue';
 
 export default {
@@ -86,7 +86,7 @@ export default {
       if (this.searchParams.hasCar !== 'any') query.hasCar = this.searchParams.hasCar;
 
       try {
-        const response = await axios.get('/api/trips/search', { params: query });
+        const response = await service.get('/api/trips/search', { params: query });
         if (response.data.code === 200) {
 
           this.searchResults = response.data.data;

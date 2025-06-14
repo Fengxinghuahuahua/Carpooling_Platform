@@ -67,7 +67,7 @@ import ProfileInitiated from "@/components/ProfileInitiated.vue";
 import ProfileJoined from "@/components/ProfileJoined.vue";
 import ProfileEdit from "@/components/ProfileEdit.vue";
 import ProfileMessage from "@/components/ProfileMessage.vue";
-import axios from "axios";
+import service from "@/api/axios.js";
 
 const router = useRouter()
 
@@ -96,13 +96,13 @@ const logout = () => {
 
 onMounted(async () => {
   // 获取用户信息
-  const newUserInfo = await axios({
+  const newUserInfo = await service({
     url: '/api/user/profile',
     method: 'get'
   })
   Object.assign(userInfo, newUserInfo.data.data)
   // 获取未读消息数量
-  const unreadMessages = await axios({
+  const unreadMessages = await service({
     url: '/api/user/messages/unread',
     method: 'get'
   })

@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import service from "@/api/axios.js";
 import defaultAvatar from '@/assets/images/avatar_default.png'; // 确保这个路径正确
 
 export default {
@@ -137,7 +137,7 @@ export default {
       this.error = null;
       this.trip = null; // 重置 trip
       try {
-        const response = await axios.get(`/api/trips/${this.id}`);
+        const response = await service.get(`/api/trips/${this.id}`);
         if (response.data.code === 200 && response.data.data) {
           this.trip = response.data.data;
           // 确保 mock API 返回的 trip 对象中包含 seatsAvailable，或者在这里计算
@@ -176,7 +176,7 @@ export default {
       this.isProcessing = true;
       this.clearActionMessage();
       try {
-        const response = await axios.post(`/api/trips/${this.id}/join`);
+        const response = await service.post(`/api/trips/${this.id}/join`);
         if (response.data.code === 200) {
           this.trip = response.data.data;
            if (typeof this.trip.seatsAvailable === 'undefined' && this.trip.passengers) { // 更新 seatsAvailable
@@ -201,7 +201,7 @@ export default {
       this.isProcessing = true;
       this.clearActionMessage();
       try {
-        const response = await axios.post(`/api/trips/${this.id}/leave`);
+        const response = await service.post(`/api/trips/${this.id}/leave`);
         if (response.data.code === 200) {
           this.trip = response.data.data;
           if (typeof this.trip.seatsAvailable === 'undefined' && this.trip.passengers) { // 更新 seatsAvailable
@@ -234,7 +234,7 @@ export default {
       this.isProcessing = true;
       this.clearActionMessage();
       try {
-        const response = await axios.delete(`/api/trips/${this.id}`);
+        const response = await service.delete(`/api/trips/${this.id}`);
         if (response.data.code === 200) {
           this.showActionMessage('行程删除成功！正在跳转回首页...', 'success');
           setTimeout(() => this.$router.push('/home'), 2000);

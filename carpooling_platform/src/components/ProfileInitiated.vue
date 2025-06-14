@@ -26,7 +26,7 @@
 import {ElMessage, ElMessageBox} from "element-plus";
 import {onMounted, reactive} from "vue";
 import {useRouter} from "vue-router";
-import axios from "axios";
+import service from "@/api/axios.js"; 
 
 const router = useRouter()
 
@@ -61,7 +61,7 @@ const cancelCarpool = (id) => {
 }
 
 onMounted(async () => {
-  const newInitiatedCarpools = await axios({
+  const newInitiatedCarpools = await service({
     method: 'get',
     url: '/api/user/initiated_carpools',
   })

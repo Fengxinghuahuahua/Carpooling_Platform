@@ -20,7 +20,7 @@
 
 <script>
 import TripCard from '@/components/TripCard.vue';
-import axios from 'axios';
+import service from "@/api/axios.js";
 
 export default {
   name: 'HomePage',
@@ -43,7 +43,7 @@ export default {
       this.isLoading = true;
       this.error = null;
       try {
-        const response = await axios.get('/api/trips');
+        const response = await service.get('/api/trips');
         if (response.data.code === 200) {
           this.trips = response.data.data;
         } else {

@@ -32,7 +32,7 @@
 <script setup>
 import {ElMessage} from "element-plus";
 import {defineModel, reactive} from "vue";
-import axios from "axios";
+import service from "@/api/axios.js";
 import {Plus} from "@element-plus/icons-vue";
 
 const userInfo = defineModel()
@@ -63,7 +63,7 @@ const customUpload = (option) => {
   const reader = new FileReader()
   reader.readAsDataURL(option.file)
   reader.onload = () => {
-    axios.post('/api/user/upload', {
+    service.post('/api/user/upload', {
       data: reader.result
     }).then((res) => {
       option.onSuccess(res)
@@ -98,7 +98,7 @@ const updateProfile = () => {
     return;
   }
   // 如果校验通过，更新信息
-  axios({
+  service({
     method: 'post',
     url: '/api/user/update',
     data: userInfoCopy

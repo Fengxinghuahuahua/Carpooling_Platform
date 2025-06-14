@@ -72,7 +72,7 @@
 <script setup>
 import {ElMessage} from "element-plus";
 import {onMounted, reactive, ref, defineModel} from "vue";
-import axios from "axios";
+import service from "@/api/axios.js";
 
 const dialogVisible = ref(false); // 控制弹窗显示
 const currentMessage = ref({}); // 当前选中的消息内容
@@ -86,7 +86,7 @@ const readMessage = async (id) => {
   const index = unreadMessagesList.findIndex((item) => item.id === id);
   if (index !== -1) {
     // 发送请求更新消息状态
-    await axios({
+    await service({
       method: "post",
       url: `/api/user/messages/read/${id}`,
     });
@@ -113,12 +113,12 @@ const viewMessage = (id) => {
 };
 
 async function refreshData() {
-  const newReadMessagesList = await axios({
+  const newReadMessagesList = await service({
     url: '/api/user/messages/read',
     method: 'get'
   })
   Object.assign(readMessagesList, newReadMessagesList.data.data)
-  const newUnreadMessagesList = await axios({
+  const newUnreadMessagesList = await service({
     url: '/api/user/messages/unread',
     method: 'get'
   })

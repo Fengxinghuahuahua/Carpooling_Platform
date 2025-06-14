@@ -176,7 +176,7 @@ export default {
         ElMessage.success('注册成功！');
         console.log('注册成功:', response.data);
         registerError.value = '';
-        toggleLogin(); // 注册成功后切换到登录
+        toggleLogin();
       } catch (error) {
         registerError.value = error.response?.data?.error || '注册失败，请稍后重试';
       }

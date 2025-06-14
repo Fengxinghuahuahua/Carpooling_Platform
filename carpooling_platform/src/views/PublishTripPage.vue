@@ -34,13 +34,16 @@
         {{ isSubmitting ? '发布中...' : '确认发布' }}
       </button>
 
-      <p v-if="message" :class="isError ? 'error-message' : 'success-message'">{{ message }}</p>
+      <!-- 本地消息提示可以保留，用于显示表单验证错误 -->
+      <p v-if="message && isError" class="error-message">{{ message }}</p>
     </form>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import service from "@/api/axios.js";
+// --- 关键修改 1: 导入 ElMessage ---
+import { ElMessage } from 'element-plus';
 
 export default {
   name: 'PublishTripPage',
@@ -51,7 +54,7 @@ export default {
         destination: '',
         departureTime: this.getDefaultDepartureTime(),
         description: '',
-        seatsTotal: 3,
+        seatsTotal: 1, // 默认为1
         hasCar: true
       },
       isSubmitting: false,
@@ -62,7 +65,9 @@ export default {
   methods: {
     getDefaultDepartureTime() {
       const now = new Date();
+      // 增加一小时作为默认出发时间
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset() + 60);
+      // 返回 HTML datetime-local input 需要的格式
       return now.toISOString().slice(0, 16);
     },
     async submitTrip() {
@@ -70,6 +75,7 @@ export default {
       this.message = '';
       this.isError = false;
 
+      // 前端验证
       if (!this.trip.origin || !this.trip.destination || !this.trip.departureTime || this.trip.seatsTotal <= 0) {
         this.message = '请填写所有必填项。';
         this.isError = true;
@@ -77,29 +83,37 @@ export default {
         return;
       }
 
-      const formattedDepartureTime = this.trip.departureTime.replace('T', ' ').replace(/-/g, '/');
-
-
       try {
         const payload = {
-          ...this.trip,
-          departureTime: formattedDepartureTime
+          origin: this.trip.origin,
+          destination: this.trip.destination,
+          departureTime: this.trip.departureTime,
+          seatsTotal: this.trip.seatsTotal,
+          description: this.trip.description,
+          hasCar: this.trip.hasCar
         };
-        const response = await axios.post('/api/trips', payload);
-        if (response.data.code === 200) {
-          this.message = '行程发布成功！';
-          // 重置表单或跳转
+        
+        const response = await service.post('/api/trips/', payload);
+
+        if (response.data.code === 201) {
+          // --- 关键修改 2: 使用 ElMessage 显示成功消息 ---
+          ElMessage.success('行程发布成功！即将跳转到详情页...');
+          
           setTimeout(() => {
-            this.$router.push({ name: 'TripDetailPage', params: { id: response.data.data.id } });
+            // 使用 name 跳转，并传递新行程的 ID
+            this.$router.push({ name: 'TripDetail', params: { id: response.data.data.id } });
           }, 1500);
         } else {
-          this.message = response.data.message || '发布失败，请稍后再试。';
-          this.isError = true;
+          // 对于接口返回的业务失败，也使用 ElMessage
+          ElMessage.error(response.data.message || '发布失败，请稍后再试。');
         }
       } catch (error) {
         console.error('Error publishing trip:', error);
-        this.message = '发布过程中发生错误，请检查网络或联系管理员。';
-        this.isError = true;
+        // 网络错误或被拦截器处理的错误，也使用 ElMessage
+        // 拦截器中可能已经弹过消息，这里可以作为备用
+        if (!error.response || error.response.status !== 401) {
+            ElMessage.error(error.response?.data?.message || '发布过程中发生错误，请检查网络。');
+        }
       } finally {
         this.isSubmitting = false;
       }
@@ -109,9 +123,7 @@ export default {
 </script>
 
 <style scoped>
-/* PublishTripPage specific styles, if any, can go here */
-/* General form styles are in global.css */
 .publish-trip-page {
-  max-width: 600px; /* narrower form */
+  max-width: 600px;
 }
 </style>
