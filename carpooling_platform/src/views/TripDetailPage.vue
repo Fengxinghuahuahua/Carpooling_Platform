@@ -4,9 +4,9 @@
     <div v-if="error && !isLoading" class="error-message">{{ error }}</div> <!-- 只有在非加载状态下显示错误 -->
     <div v-if="trip && !isLoading && !error" class="trip-content">
       <div class="trip-header">
-        <h2>{{ trip.origin }} ➔ {{ trip.destination }}</h2>
+        <h2>{{ trip.departure }} ➔ {{ trip.destination }}</h2>
         <span :class="['status-badge', trip.status === '可拼' ? 'status-available' : 'status-full']">
-          {{ trip.status }} (还剩 {{ trip.seatsAvailable }}座 / 共{{trip.seatsTotal}}座)
+          {{ trip.status }} (还剩 {{ trip.current_people }}座 / 共{{trip.max_people}}座)
         </span>
       </div>
 
@@ -140,6 +140,7 @@ export default {
         const response = await service.get(`/api/trips/${this.id}`);
         if (response.data.code === 200 && response.data.data) {
           this.trip = response.data.data;
+          console.log(this.trip)
           // 确保 mock API 返回的 trip 对象中包含 seatsAvailable，或者在这里计算
           if (typeof this.trip.seatsAvailable === 'undefined' && this.trip.passengers) {
               this.trip.seatsAvailable = this.trip.seatsTotal - this.trip.passengers.length;

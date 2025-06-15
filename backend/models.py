@@ -16,6 +16,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(100), unique=True)
     avatar = db.Column(db.String(255), default="/static/uploads/Profile_Default.png")
     credit_score = db.Column(db.Integer, default=100)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, 
                         default=lambda: datetime.now(timezone.utc),

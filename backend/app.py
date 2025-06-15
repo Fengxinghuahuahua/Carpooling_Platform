@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify, current_app
 from flask_login import LoginManager, login_required, current_user, logout_user
 from models import db, User, Message
 from flask_cors import CORS
+from datetime import datetime, timedelta, timezone
 import os, base64
 import jwt
+from sqlalchemy import or_
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -41,9 +43,6 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(travel_bp, url_prefix='/api/trips')
 app.register_blueprint(comment_bp, url_prefix='/api/comment')
 
-@app.route('/api/admin/login', methods=['POST'])
-def admin_login():
-    pass
 
 @app.route('/api/user/logout', methods=['POST'])
 @login_required
@@ -51,8 +50,37 @@ def logout():
     logout_user() # 清除 flask-login 的用户会话
     return jsonify({'code': 200, 'message': 'Logout successful'})
 # ========== 用户管理（管理员用） ==========
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """管理员登录接口"""
+    data = request.get_json()
+    identifier = data.get('identifier')
+    password = data.get('password')
+
+    if not identifier or not password:
+        return jsonify({'error': 'Identifier and password are required'}), 400
+
+    user = User.query.filter(or_(User.username == identifier, User.email == identifier)).first()
+
+    if not user or not user.check_password(password) or not user.is_admin:
+        return jsonify({'error': 'Invalid admin credentials or not an admin'}), 401
+
+    token = jwt.encode({
+        'user_id': user.id,
+        'is_admin': True,
+        'exp': datetime.now(timezone.utc) + timedelta(hours=8)
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+    
+    return jsonify({'message': 'Admin login successful', 'token': token})
+
+# ========== 用户管理（管理员用） ==========
 @app.route('/api/users', methods=['GET'])
+@login_required # 添加登录验证
 def get_users():
+    """获取所有用户列表（仅限管理员）"""
+    if not current_user.is_admin:
+        return jsonify({'code': 403, 'message': 'Admin access required'}), 403
+
     users = User.query.all()
     data = []
     for user in users:
@@ -65,10 +93,19 @@ def get_users():
     return jsonify({'code': 200, 'data': data})
 
 @app.route('/api/users/<int:user_id>', methods=['DELETE'])
+@login_required # 添加登录验证
 def delete_user(user_id):
-    user = User.query.get(user_id)
+    """删除指定用户（仅限管理员）"""
+    if not current_user.is_admin:
+        return jsonify({'code': 403, 'message': 'Admin access required'}), 403
+    
+    if current_user.id == user_id:
+        return jsonify({'code': 400, 'message': 'Cannot delete your own admin account'}), 400
+
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'code': 404, 'message': '用户不存在'}), 404
+    
     db.session.delete(user)
     db.session.commit()
     return jsonify({'code': 200, 'message': '删除成功'})
