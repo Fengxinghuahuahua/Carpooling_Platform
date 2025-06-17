@@ -475,26 +475,76 @@
 //   };
 // });
 
-// // 删除行程 (仅限发起人)
+// // 删除指定行程
 // Mock.mock(RegExp('/api/trips/[^/]+'), 'delete', (options) => {
-//   const id = options.url.split('/').pop();
-//   const currentUser = getCurrentUser();
-//   const tripIndex = trips.findIndex(t => t.id === id);
+//     const id = options.url.split('/').pop();
+//     const index = trips.findIndex(t => t.id === id);
+//     if (index === -1) {
+//       return {
+//         code: 404,
+//         message: '行程不存在'
+//       };
+//     }
+//     trips.splice(index, 1);
+//     return {
+//       code: 200,
+//       message: '行程删除成功'
+//     };
+//   });
 
-//   if (tripIndex === -1) {
-//     return { code: 404, message: '行程未找到' };
-//   }
-
-//   const trip = trips[tripIndex];
-//   if (trip.driver.id !== currentUser.id) {
-//     return { code: 403, message: '您无权删除此行程' };
-//   }
-
-//   trips.splice(tripIndex, 1);
-//   return {
-//     code: 200,
-//     message: '行程删除成功'
-//   };
-// });
+// // 初始化内存中的管理员数据
+// let managersData = Mock.mock({
+//     'managers|5': [
+//       {
+//         'id|+1': 2000,
+//         username: '@last',
+//         password: '123456',
+//         phone: /^1[3-9]\d{9}$/,
+//         email: '@email'
+//       },
+//     ],
+//   }).managers;
+  
+//   // 模拟获取管理员列表接口
+//   Mock.mock('/api/managers', 'get', () => {
+//     return {
+//       code: 200,
+//       message: '获取管理员成功',
+//       data: managersData,
+//     };
+//   });
+  
+//   // 模拟添加管理员接口
+//   Mock.mock('/api/managers', 'post', (options) => {
+//     const body = JSON.parse(options.body);
+//     if (!body.username || !body.password) {
+//       return {
+//         code: 400,
+//         message: '用户名和密码不能为空',
+//       };
+//     }
+//     const newId = managersData.length ? Math.max(...managersData.map(m => m.id)) + 1 : 2000;
+//     managersData.push({
+//       id: newId,
+//       username: body.username,
+//       password: body.password,
+//       phone: body.phone || '',
+//       email: body.email || '',
+//     });
+//     return {
+//       code: 200,
+//       message: '添加管理员成功',
+//     };
+//   });
+  
+//   // 模拟删除管理员接口
+//   Mock.mock(/\/api\/managers\/\d+/, 'delete', (options) => {
+//     const id = parseInt(options.url.match(/\/api\/managers\/(\d+)/)[1]);
+//     managersData = managersData.filter(m => m.id !== id);
+//     return {
+//       code: 200,
+//       message: '管理员删除成功',
+//     };
+//   });
 
 // export default Mock;
